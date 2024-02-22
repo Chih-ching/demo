@@ -6,7 +6,9 @@ import org.springframework.stereotype.Service;
 @Service
 public interface DemoService {
     StepDto getExchangeRates();
-    void insertTable(String exchangeRatesInfo);
+    StepDto insertTable(String exchangeRatesInfo);
 
+    StepDto dateChk(String start, String end);
+    StepDto queryForeignExchangeRates(String currency,String start,String end);
 }
 

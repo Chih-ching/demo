@@ -19,19 +19,14 @@ public class Scheduler {
     public void getForeignExchangeInfo() {
         StepDto stepInfo=new StepDto();
         stepInfo.setSuccess(true);
-
+        //讀取指定網址，並取得內容
         if(stepInfo.getSuccess()){
             stepInfo=demoService.getExchangeRates();
         }
+        //內容整理後新增進資料庫
         if(stepInfo.getSuccess()){
             demoService.insertTable(stepInfo.getData().toString());
         }
-
     }
-}
 
-//        提供一批次每日 18:00 呼叫 API，取得外匯成交資料，
-//        並將每日的美元/台幣欄位(USD/NTD)資料與日期(yyyy-MM-dd HH:mm:ss) insert 至 table/collection，
-//        並針對批次功能寫 Unit test。
-//        API URL：https://openapi.taifex.com.tw/v1/DailyForeignExchangeRates
-//        API Method：GET
+}

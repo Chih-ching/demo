@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.dao.CollectionDAO;
+import com.example.demo.dto.CurrencyInfo;
 import com.example.demo.dto.StepDto;
 import com.example.demo.po.CollectionPo;
 import org.apache.http.HttpEntity;
@@ -19,7 +20,10 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Date;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -64,7 +68,7 @@ public class DemoServiceImpl implements DemoService {
     }
 
     @Override
-    public void insertTable(String exchangeRatesInfo) {
+    public StepDto insertTable(String exchangeRatesInfo) {
         StepDto stepDto = new StepDto();
         Boolean success = false;
         try {
@@ -78,9 +82,63 @@ public class DemoServiceImpl implements DemoService {
                 CollectionArr.add(po);
             }
             collectionDAO.saveAll(CollectionArr);
+            success = true;
         } catch (Exception e) {
             System.out.println("getJSONObject error");
         }
+        stepDto.setSuccess(success);
+        stepDto.setData(null);
+        return stepDto;
+    }
+
+    @Override
+    public StepDto dateChk(String start, String end) {
+        StepDto stepDto = new StepDto();
+        Boolean success = false;
+        Boolean res = false;
+        try {
+            //日期範圍最小值
+            LocalDate minDate = LocalDate.now().minusYears(1L);
+            minDate = minDate.minusDays(1L);
+            //日期範圍最大值
+            LocalDate maxDate = LocalDate.now();
+            //input日期開始日
+            LocalDate inputStartDate = LocalDate.parse(start, DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+            //input日期結束日
+            LocalDate inputEndDate = LocalDate.parse(end, DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+            //確認input日期是否有在日期範圍內
+            if (minDate.isBefore(inputStartDate) && maxDate.isAfter(inputEndDate)) {
+                res = true;
+            }
+            success = true;
+        } catch (Exception e) {
+            System.out.println("dateChk error");
+        }
+        stepDto.setSuccess(success);
+        stepDto.setData(res);
+        return stepDto;
+    }
+
+    @Override
+    public StepDto queryForeignExchangeRates(String start, String end, String currency) {
+        StepDto stepDto = new StepDto();
+        Boolean success = false;
+        try {
+            List<Map<String, Object>> infoList = collectionDAO.dateRangeQuery(start, end);
+            ArrayList<CurrencyInfo> currencyList=new ArrayList<>();
+            for(Map<String, Object> info:infoList){
+                CurrencyInfo currencyInfo=new CurrencyInfo();
+                currencyInfo.setDate(info.get("date").toString());
+                currencyInfo.setUsd(info.get(currency)==null?"":info.get(currency).toString());
+                currencyList.add(currencyInfo);
+            }
+            stepDto.setData(currencyList);
+            success = true;
+        } catch (Exception e) {
+            System.out.println("queryForeignExchangeRates error");
+        }
+        stepDto.setSuccess(success);
+        return stepDto;
     }
 
 }
