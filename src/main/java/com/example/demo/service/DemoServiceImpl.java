@@ -68,12 +68,13 @@ public class DemoServiceImpl implements DemoService {
     }
 
     @Override
-    public StepDto insertTable(String exchangeRatesInfo) {
+    public StepDto parseExchangeRatesInfo(String exchangeRatesInfo) {
         StepDto stepDto = new StepDto();
         Boolean success = false;
+        ArrayList<CollectionPo> CollectionArr = null;
         try {
             ArrayList<Map<String, Object>> infoArr = new Gson().fromJson(exchangeRatesInfo, ArrayList.class);
-            ArrayList<CollectionPo> CollectionArr = new ArrayList<>();
+            CollectionArr = new ArrayList<>();
             for (Map<String, Object> info : infoArr) {
                 CollectionPo po = new CollectionPo();
                 Date date = new java.sql.Date(new SimpleDateFormat("yyyyMMdd").parse(info.get("Date").toString()).getTime());
@@ -81,14 +82,30 @@ public class DemoServiceImpl implements DemoService {
                 po.setUsd(info.get("USD/NTD").toString());
                 CollectionArr.add(po);
             }
+            // collectionDAO.saveAll(CollectionArr);
+            success = true;
+        } catch (Exception e) {
+            System.out.println("getJSONObject error");
+            System.out.println(e);
+        }
+        stepDto.setSuccess(success);
+        stepDto.setData(CollectionArr);
+        return stepDto;
+    }
+
+    @Override
+    public void insertTable(ArrayList<CollectionPo> CollectionArr) {
+        StepDto stepDto = new StepDto();
+        Boolean success = false;
+        try {
             collectionDAO.saveAll(CollectionArr);
             success = true;
         } catch (Exception e) {
             System.out.println("getJSONObject error");
+            System.out.println(e);
         }
         stepDto.setSuccess(success);
         stepDto.setData(null);
-        return stepDto;
     }
 
     @Override
@@ -107,12 +124,13 @@ public class DemoServiceImpl implements DemoService {
             //input日期結束日
             LocalDate inputEndDate = LocalDate.parse(end, DateTimeFormatter.ofPattern("yyyy/MM/dd"));
             //確認input日期是否有在日期範圍內
-            if (minDate.isBefore(inputStartDate) && maxDate.isAfter(inputEndDate)) {
+            if (minDate.isBefore(inputStartDate) && maxDate.isAfter(inputEndDate) && inputStartDate.isBefore(inputEndDate)) {
                 res = true;
             }
             success = true;
         } catch (Exception e) {
             System.out.println("dateChk error");
+            System.out.println(e);
         }
         stepDto.setSuccess(success);
         stepDto.setData(res);
@@ -125,17 +143,18 @@ public class DemoServiceImpl implements DemoService {
         Boolean success = false;
         try {
             List<Map<String, Object>> infoList = collectionDAO.dateRangeQuery(start, end);
-            ArrayList<CurrencyInfo> currencyList=new ArrayList<>();
-            for(Map<String, Object> info:infoList){
-                CurrencyInfo currencyInfo=new CurrencyInfo();
+            ArrayList<CurrencyInfo> currencyList = new ArrayList<>();
+            for (Map<String, Object> info : infoList) {
+                CurrencyInfo currencyInfo = new CurrencyInfo();
                 currencyInfo.setDate(info.get("date").toString());
-                currencyInfo.setUsd(info.get(currency)==null?"":info.get(currency).toString());
+                currencyInfo.setUsd(info.get(currency) == null ? "" : info.get(currency).toString());
                 currencyList.add(currencyInfo);
             }
             stepDto.setData(currencyList);
             success = true;
         } catch (Exception e) {
             System.out.println("queryForeignExchangeRates error");
+            System.out.println(e);
         }
         stepDto.setSuccess(success);
         return stepDto;

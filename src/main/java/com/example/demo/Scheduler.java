@@ -4,11 +4,15 @@ import com.example.demo.dto.StepDto;
 import com.example.demo.service.DemoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+
 @Component
+@Profile("scheduling")
 public class Scheduler {
 
     @Autowired
@@ -25,7 +29,11 @@ public class Scheduler {
         }
         //內容整理後新增進資料庫
         if(stepInfo.getSuccess()){
-            demoService.insertTable(stepInfo.getData().toString());
+            stepInfo=demoService.parseExchangeRatesInfo(stepInfo.getData().toString());
+        }
+        //內容整理後新增進資料庫
+        if(stepInfo.getSuccess()){
+            demoService.insertTable((ArrayList)stepInfo.getData());
         }
     }
 
